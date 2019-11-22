@@ -1,0 +1,113 @@
+---
+title: "prep"
+author: "Alexandra Norris"
+date: "11/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+library(wbstats)
+library(countrycode)
+library(tidyverse)
+library(ggplot2)
+library(essurvey)
+library(sf)
+library(gganimate)
+
+```
+
+```{r}
+
+ref <- wb(indicator = "SM.POP.REFG")
+
+ref$continent <- countrycode(sourcevar = ref[, "country"],
+                            origin = "country.name",
+                            destination = "continent")
+
+europe_aggregate <- ref %>%
+  filter(country == "Euro area")
+
+euro_countries <- ref %>%
+  filter(continent == "Europe")
+
+euro_countries <- euro_countries %>%
+  mutate(cntry = iso3c)
+
+euro_countries %>%
+  group_by(country) %>%
+  ggplot(aes(x = date, y = value, color = country)) +
+  geom_point()
+  
+europe_aggregate %>%
+  ggplot(aes(date, value)) + geom_point()
+
+```
+```{r, cache=TRUE}
+
+set_email("norrisalexandra35@gmail.com")
+
+all_rounds <- import_all_rounds()
+
+```
+
+```{r ess cleaning}
+
+one <- all_rounds[[1]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+two <- all_rounds[[2]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+three <- all_rounds[[3]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+four <- all_rounds[[4]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+five <- all_rounds[[5]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+six <- all_rounds[[6]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+seven <- all_rounds[[7]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+eight <- all_rounds[[8]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+nine <- all_rounds[[9]] %>%
+  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
+
+x <- rbind(one, two, three, four, five, six, seven, eight)
+
+```
+
+```{r}
+
+y <- x %>%
+  mutate(year = (essround * 2) + 2000) %>%
+  mutate(year_ref_effect = year - 2)
+
+# %>%
+#   countrycode(cntry, origin = "eurostat", destination = "iso3c")
+
+```
+
+```{r}
+
+```
+
+
+```{r, cache=TRUE}
+# download.file("https://ec.europa.eu/eurostat/cache/GISCO/distribution/v2/countries/download/ref-countries-2016-01m.shp.zip", destfile = "euro")
+# 
+# unzip("euro")
+# 
+# shape <- st_read("CNTR_RG_01M_2016_3035.shp/CNTR_RG_01M_2016_3035.shp")
+# 
+# ggplot() + geom_sf(data = shape)
+```
+
