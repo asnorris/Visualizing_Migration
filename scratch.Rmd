@@ -15,35 +15,86 @@ library(ggplot2)
 library(essurvey)
 library(sf)
 library(gganimate)
+library(plotly)
+library(rnaturalearth)
 
 ```
 
+For this pr
 ```{r}
 
+# refugees by country or territory of asylum
+
 ref <- wb(indicator = "SM.POP.REFG")
+
 
 ref$continent <- countrycode(sourcevar = ref[, "country"],
                             origin = "country.name",
                             destination = "continent")
 
+ref %>%
+  filter(continent == "Europe")
+
 europe_aggregate <- ref %>%
   filter(country == "Euro area")
 
-euro_countries <- ref %>%
-  filter(continent == "Europe")
+ref_arrive<- ref %>%
+  filter(continent == "Europe" | continent == "Asia" | continent == "North America" | continent == "South America" | continent ==  "Oceania" | continent == "Africa")
 
-euro_countries <- euro_countries %>%
-  mutate(cntry = iso3c)
+ref_arrive %>%
+  group_by(date) %>%
+  arrange(desc(value)) %>%
+  head(10) %>%
+  ggplot(aes(x = date, y = value, size = value)) +
+  geom_col() 
+
+euro_countries <- 
 
 euro_countries %>%
   group_by(country) %>%
-  ggplot(aes(x = date, y = value, color = country)) +
-  geom_point()
+  ggplot(aes(x = date, y = value)) +
+  geom_col()
   
 europe_aggregate %>%
   ggplot(aes(date, value)) + geom_point()
 
 ```
+
+```{r}
+# refugees by country or territory of origin
+
+
+```
+
+
+```{r}
+gdp <- wb(indicator = "NY.GDP.PCAP.KD.ZG")
+
+gdp_euro_agg <- gdp %>%
+  filter(country == "Euro area")
+
+gdp$continent <- countrycode(sourcevar = ref[, "country"],
+                            origin = "country.name",
+                            destination = "continent")
+
+
+```
+```{r, refugees and gdp}
+euro_agg <- merge(gdp_euro_agg, europe_aggregate, by = c("iso3c", "date", "country", "iso2c"))
+
+# value.x is the gdp growth rate, value.y is the number or refugees
+
+lm(value.x ~ value.y, data = euro_agg)
+
+euro_agg %>%
+  ggplot(aes(x = date, y = value.x)) + 
+  geom_point() +
+  transition_time(date)
+```
+
+
+
+
 ```{r, cache=TRUE}
 
 set_email("norrisalexandra35@gmail.com")
@@ -89,7 +140,8 @@ x <- rbind(one, two, three, four, five, six, seven, eight)
 
 y <- x %>%
   mutate(year = (essround * 2) + 2000) %>%
-  mutate(year_ref_effect = year - 2)
+  mutate(year_ref_effect = year - 2) %>%
+
 
 # %>%
 #   countrycode(cntry, origin = "eurostat", destination = "iso3c")
@@ -101,13 +153,18 @@ y <- x %>%
 ```
 
 
-```{r, cache=TRUE}
-# download.file("https://ec.europa.eu/eurostat/cache/GISCO/distribution/v2/countries/download/ref-countries-2016-01m.shp.zip", destfile = "euro")
-# 
-# unzip("euro")
-# 
-# shape <- st_read("CNTR_RG_01M_2016_3035.shp/CNTR_RG_01M_2016_3035.shp")
-# 
-# ggplot() + geom_sf(data = shape)
+```{r}
+
+download.file("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson", destfile = "world")
+
+shape <- st_read("world")
+
+
+  ggplot() + 
+  geom_sf(data = shape, color = "black")
+  
+
+  
+
 ```
 
