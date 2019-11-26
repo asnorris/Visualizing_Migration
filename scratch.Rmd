@@ -30,19 +30,10 @@ ref <- wb(indicator = "SM.POP.REFG")
 
 ref_2018 <- ref %>%
   filter(date == 2018) %>%
-  select(iso3c, country, value) %>%
-  slice(47:219)
+  select(iso3c, country, value)
 
 
-ref$continent <- countrycode(sourcevar = ref[, "country"],
-                            origin = "country.name",
-                            destination = "continent")
 
-ref %>%
-  filter(continent == "Europe")
-
-europe_aggregate <- ref %>%
-  filter(country == "Euro area")
 
 ref_arrive<- ref %>%
   filter(continent == "Europe" | continent == "Asia" | continent == "North America" | continent == "South America" | continent ==  "Oceania" | continent == "Africa")
@@ -68,6 +59,11 @@ europe_aggregate %>%
 
 ```{r}
 # refugees by country or territory of origin
+
+ref_origin <- wb(indicator = "SM.POP.REFG.OR") %>%
+  select(iso3c, country, value, date) %>%
+  slice(1335:6493)
+
 
 
 ```
@@ -100,29 +96,13 @@ euro_agg %>%
 
 
 ```{r}
-
-download.file("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson", destfile = "world")
-
-shape <- st_read("world") %>%
-  filter(ISO_A3 %in% ref_2018$iso3c)
-
-plot <- ggplot(data = shape) + 
-  geom_sf(aes(fill = ref_2018$value))
-
-ggplotly(plot) %>%
-#   highlight(
-#     "plotly_hover",
-#     selected = attrs_selected(line = list(color = "black"))
-# ) %>%
-  add_trace(
-    z = ~ref_2018$value, locations = ~ref_2018$iso3c, color = ~ref_2018$value, colors = "RdBu"
-  )
-
+# refugee asylum location map 2018
 
 plot_geo(data = ref_2018, locationmode = 'country names') %>%
   add_trace(
     z = ~value, locations = ~country, color = ~value, colors = "RdBu"
   )
+
 
   
 ```

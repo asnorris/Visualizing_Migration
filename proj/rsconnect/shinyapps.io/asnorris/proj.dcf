@@ -1,0 +1,12 @@
+name: proj
+title: proj
+username:
+account: asnorris
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1520513
+bundleId: 2614807
+url: https://asnorris.shinyapps.io/proj/
+when: 1574657175.90238
+asMultiple: FALSE
+asStatic: FALSE
