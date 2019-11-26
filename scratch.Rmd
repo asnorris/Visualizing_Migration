@@ -17,15 +17,21 @@ library(sf)
 library(gganimate)
 library(plotly)
 library(rnaturalearth)
+library(plotly)
 
 ```
 
-For this pr
+
 ```{r}
 
 # refugees by country or territory of asylum
 
 ref <- wb(indicator = "SM.POP.REFG")
+
+ref_2018 <- ref %>%
+  filter(date == 2018) %>%
+  select(iso3c, country, value) %>%
+  slice(47:219)
 
 
 ref$continent <- countrycode(sourcevar = ref[, "country"],
@@ -93,78 +99,31 @@ euro_agg %>%
 ```
 
 
-
-
-```{r, cache=TRUE}
-
-set_email("norrisalexandra35@gmail.com")
-
-all_rounds <- import_all_rounds()
-
-```
-
-```{r ess cleaning}
-
-one <- all_rounds[[1]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-two <- all_rounds[[2]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-three <- all_rounds[[3]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-four <- all_rounds[[4]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-five <- all_rounds[[5]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-six <- all_rounds[[6]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-seven <- all_rounds[[7]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-eight <- all_rounds[[8]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-nine <- all_rounds[[9]] %>%
-  select(name, essround, cntry, agea, eduyrs, imdfetn, impcntr)
-
-x <- rbind(one, two, three, four, five, six, seven, eight)
-
-```
-
-```{r}
-
-y <- x %>%
-  mutate(year = (essround * 2) + 2000) %>%
-  mutate(year_ref_effect = year - 2) %>%
-
-
-# %>%
-#   countrycode(cntry, origin = "eurostat", destination = "iso3c")
-
-```
-
-```{r}
-
-```
-
-
 ```{r}
 
 download.file("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson", destfile = "world")
 
-shape <- st_read("world")
+shape <- st_read("world") %>%
+  filter(ISO_A3 %in% ref_2018$iso3c)
+
+plot <- ggplot(data = shape) + 
+  geom_sf(aes(fill = ref_2018$value))
+
+ggplotly(plot) %>%
+#   highlight(
+#     "plotly_hover",
+#     selected = attrs_selected(line = list(color = "black"))
+# ) %>%
+  add_trace(
+    z = ~ref_2018$value, locations = ~ref_2018$iso3c, color = ~ref_2018$value, colors = "RdBu"
+  )
 
 
-  ggplot() + 
-  geom_sf(data = shape, color = "black")
+plot_geo(data = ref_2018, locationmode = 'country names') %>%
+  add_trace(
+    z = ~value, locations = ~country, color = ~value, colors = "RdBu"
+  )
+
   
-
-  
-
 ```
 
