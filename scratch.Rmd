@@ -32,29 +32,6 @@ ref_2018 <- ref %>%
   filter(date == 2018) %>%
   select(iso3c, country, value)
 
-
-
-
-ref_arrive<- ref %>%
-  filter(continent == "Europe" | continent == "Asia" | continent == "North America" | continent == "South America" | continent ==  "Oceania" | continent == "Africa")
-
-ref_arrive %>%
-  group_by(date) %>%
-  arrange(desc(value)) %>%
-  head(10) %>%
-  ggplot(aes(x = date, y = value, size = value)) +
-  geom_col() 
-
-euro_countries <- 
-
-euro_countries %>%
-  group_by(country) %>%
-  ggplot(aes(x = date, y = value)) +
-  geom_col()
-  
-europe_aggregate %>%
-  ggplot(aes(date, value)) + geom_point()
-
 ```
 
 ```{r}
@@ -64,34 +41,63 @@ ref_origin <- wb(indicator = "SM.POP.REFG.OR") %>%
   select(iso3c, country, value, date) %>%
   slice(1335:6493)
 
-
-
 ```
 
+
+```{r, refugee country of asylum and gdp}
+
+# in aggregate, there is a negative correlation between refugees and GDP Per capita
+
+gdp_percap <- wb(indicator = "NY.GDP.PCAP.KD.ZG")
+
+gdp <- wb(indicator = "NY.GDP.MKTP.CD")
+
+gdp_percap_ref <- merge(gdp_percap, ref, by = c("iso3c", "date", "country", "iso2c")) %>%
+  mutate(gdp_percap_growth = value.x,
+            refugee_number = value.y) %>%
+  select(iso3c, iso2c, country, date, gdp_percap_growth, refugee_number)
+
+data <- merge(gdp_percap_ref, gdp, by = c("iso3c", "date", "country", "iso2c")) %>%
+  mutate(gdp = value) %>%
+  select(iso3c, iso2c, country, date, gdp, gdp_percap_growth, refugee_number)
+
+# refugees and gdp per cap growth 
+
+x <- lm(gdp_percap_growth ~ refugee_number, data = data)
+
+x %>%
+  ggplot(aes(refugee_number, gdp_percap_growth)) +
+  geom_point() +
+  scale_x_continuous(labels = scales::comma) +
+  geom_smooth(method = "lm")
+
+# refugees and gdp per cap growth with gdp as explanatory variable
+
+y <- lm(gdp_percap_growth ~ refugee_number + gdp, data = data)
+
+y %>%
+  ggplot(aes(refugee_number + gdp, gdp_percap_growth)) +
+  geom_point() +
+  scale_x_continuous(labels = scales::comma) +
+  geom_smooth(method = "lm")
+
+# refugees and gdp
+
+z <- lm(gdp ~ refugee_number, data = data)
+
+z %>%
+  ggplot(aes(refugee_number, y = gdp)) + 
+  geom_point() + 
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma) +
+  geom_smooth(method = "lm")
+
+```
 
 ```{r}
-gdp <- wb(indicator = "NY.GDP.PCAP.KD.ZG")
-
-gdp_euro_agg <- gdp %>%
-  filter(country == "Euro area")
-
-gdp$continent <- countrycode(sourcevar = ref[, "country"],
-                            origin = "country.name",
-                            destination = "continent")
+# because of the negative correlation, I wanted to look at specific regions, what if I include GDP as a predictor of GDP growth rate?
 
 
-```
-```{r, refugees and gdp}
-euro_agg <- merge(gdp_euro_agg, europe_aggregate, by = c("iso3c", "date", "country", "iso2c"))
-
-# value.x is the gdp growth rate, value.y is the number or refugees
-
-lm(value.x ~ value.y, data = euro_agg)
-
-euro_agg %>%
-  ggplot(aes(x = date, y = value.x)) + 
-  geom_point() +
-  transition_time(date)
 ```
 
 
@@ -103,7 +109,5 @@ plot_geo(data = ref_2018, locationmode = 'country names') %>%
     z = ~value, locations = ~country, color = ~value, colors = "RdBu"
   )
 
-
-  
 ```
 

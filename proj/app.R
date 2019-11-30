@@ -17,6 +17,7 @@ library(sf)
 library(gganimate)
 library(plotly)
 library(rnaturalearth)
+library(shinythemes)
 
 ref <- wb(indicator = "SM.POP.REFG")
 
@@ -29,7 +30,7 @@ ref_origin <- wb(indicator = "SM.POP.REFG.OR") %>%
   slice(1335:6493)
 
 
-ui <- fluidPage(
+ui <- fluidPage(theme = shinytheme("cerulean"),
   
   # add title
   
@@ -39,20 +40,13 @@ ui <- fluidPage(
                          
                          This project is a visualization of migration data sourced from the World Bank from 1960 to 2018 looking at refugees by both country of origin and countrty of asylum.  
                          The shape data was sourced from github.")),
-             tabPanel(("Refugee Populations by Country of Origin"),
-                      
-                      mainPanel(
-                        
-                        # output: graph
-                        plotOutput("graph")
-                      )
-             ),
-             tabPanel(("Refugee Populations by Country of Asylum"),
+          
+             tabPanel(("Refugee Population Map"),
                       
                       sidebarLayout(
                         sidebarPanel(
                           sliderInput("year", "Choose a Year", min = 1990, max = 2018, value = 2018, sep = ""),
-                          selectInput("type", "Choose Origin or Destination", choices = c("Origin", "Asylum"), selected = "Asylum")),
+                          selectInput("type", "Choose Country of Asylum or Country of Origin", choices = c("Origin", "Asylum"), selected = "Asylum")),
                       mainPanel(
                         
                         # output: graph
