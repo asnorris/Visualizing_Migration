@@ -85,18 +85,32 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
   navbarPage("Visualizing Migration",
     
              # The about tab has information about my project, myself, and my
-             # data sources.
+             # data sources. I used tags$div and a() to create hyperlinks that
+             # can connect users to my data sources.
              
              tabPanel("About",
-                      h1("About This Project"),
-                        h4("This project is a visualization of migration data sourced from the World Bank from 1990 to 2018 looking at data on
-                           where refugees are coming from, where refugees are going, and the relationship between refugee numbers and GDP indicators within different contexts."),
-                      h1("About Me"),
-                        h4("My name is Alexandra Norris and I am currently a junior at Harvard College studying Government with a secondary in Economics.
-                         This Shiny App is my final project for GOV 1005 taught by David Kane. Check out my GitHub here."),
-                      h1("Data Sources"),
-                        a(h4("All of my data was sourced from the World Bank's Data Bank. The Data Bank contains data collected by the World Bank, IMF, and other UN organizations on different political, economic, and humanitarian indicators.
-                             For this project, I used data on Refugee Countries of Origin, Refugee Countreis of Asylum, GDP, GDP Per Capita, and GDP Per Capita Growth Rate"))),
+                      h1("Visualizing Migration"),
+                        h2("About This Project"),
+                          tags$div("This project is a visualization of migration data sourced from the World Bank from 1990 to 2018 looking at data on
+                                   where refugees are coming from, where refugees are going, and the relationship between refugee numbers and GDP indicators within different contexts. Given the current political context regarding refugees and whether or not they are welcomed into western countries, I decided to do this project to
+                                   better understand the correlations between refugees and different GDP indicators."),
+                        h2("About Me"),
+                          tags$div("My name is Alexandra Norris and I am currently a junior at Harvard College studying Government with a secondary in Economics.
+                                   This Shiny App is my final project for GOV 1005 taught by David Kane. Check out my GitHub", a(href =  "https://github.com/asnorris",
+                                                                                                                                 "here!")),
+                        h2("Data Sources"),
+                          tags$div("All of my data was sourced from the World Bank's", 
+                                   a(href = "https://databank.worldbank.org/home.aspx", "Data Bank."),
+                                   "The Data Bank contains data collected by the World Bank, IMF, and other UN organizations on different political, economic, and humanitarian indicators.
+                                   For this project, I used data on",
+                                   a(href = "https://data.worldbank.org/indicator/sm.pop.refg", "Refugee Countries of Origin,"), 
+                                   a(href = "https://data.worldbank.org/indicator/SM.POP.REFG.OR", "Refugee Countreis of Asylum,"), 
+                                   a(href = "https://data.worldbank.org/indicator/NY.GDP.MKTP.CD", "GDP,"), 
+                                   a(href = "https://data.worldbank.org/indicator/NY.GDP.PCAP.KD", "GDP Per Capita,"),
+                                   "and",
+                                   a(href = "https://data.worldbank.org/indicator/NY.GDP.PCAP.KD.ZG", "GDP Per Capita Growth Rate.")
+                                   )
+                        ),
           
               # This tab shows maps of the world indicating the number of
               # refugees entering and leaving a country. I create a slider to
@@ -133,7 +147,29 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                           selectInput("gdp", "Refugee Affect On:", choices = c("GDP", "GDP Per Capita", "GDP Per Capita Growth Rate"), selected = "GDP")),
                       mainPanel(
                         plotOutput("gdp_graph")
-                      ))),
+                      )),
+                      
+                      tags$div("The above graphs show the relationship between the number of refugees seeking asylum in a country and three GDP indicators: GDP, GDP Per Capita,
+                                and the GDP Per Capita Growth Rate.",
+                               
+                               tags$br(),
+                               
+                               "Looking at the above graphs, we observe a positive relationship between refugees and GDP with 
+                               a correlation coeffecient of 1,389,293, meaning that an increase of one refugee is associated with a $1,389,293 USD increase in GDP.",
+                               
+                               tags$br(),
+                               
+                               "The graph of GDP Per Capita and refugees shows a slight negative relationship between the two with a correlation coffecient of  -0.0007, meaning
+                               that an increase of one refugee is associated with a $0.0007 USD decrease in GDP per capita.",
+                               
+                               tags$br(),
+                               
+                               "The graph of refugees and GDP per capita growth rate shows that there is a very slight negative relationship between the two with a correlation coefficient of  -0.00000001, meaning that an
+                               increase of one refugee is associated with a $0.00000001 USD decrease in the GDP per capita growth rate of a nation. This correlation is not
+                               statistically significant given that the 95% confidence interval for this data encompasses zero, meaning that the correlation could be either
+                               positive, negative, or zero.")
+                      
+                  ), 
              
              # This tab shows three graphs looking at the relationship between
              # GDP per capita in three developed contexts. I created a select
@@ -148,12 +184,23 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                       mainPanel(
                  
                  plotOutput("rich_graph")
-               ))),
+               )),
+               
+               tags$div("The graphs above show the relationships between the number of refugees in a country and GDP per capita. The data I downloaded from the World Bank's 
+                        Data Bank had regional and economic indicators along with country indicators. This allowed me to look at data explicitly for high income countries,
+                        countries in the European Union, and countries in North America without much data cleaning. According to the",
+                        a(href = "https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups", "World Bank,"),
+                        "a nation classifies as high income if it has a GNI per capita of at least $12,376.",
+                        tags$br(),
+                        "As you can see by looking at each of the graphics, there is a negative correlation between refugees and GDP per capita in all of them. 
+                        This indicates that in much of the developed world (as defined by high income countries, the EU, and countries in North America), an increase
+                        in the number of refugees is associated with a decrease in GDP per capita.")),
              
              # This tab is where I make conclusions about the data and include
              # my video conclusion.
              
-             tabPanel("Conclusion")
+             tabPanel(("Conclusion"),
+              h1("Thank you for checking out my Shiny App!"))
              
   )
 )
@@ -235,7 +282,7 @@ server <- function(input, output){
       scale_x_continuous(labels = scales::comma) +
       scale_y_continuous(labels = scales::comma) +
       geom_smooth(method = "lm") +
-      labs(title = gdp_title, x = "Number of Refugees", y = y_lab, caption = "Data sourced from the World Bank's Data BanK")
+      labs(title = gdp_title, x = "Number of Refugees", y = y_lab, caption = "Data sourced from the World Bank's Data Bank")
   })
   
   # Create graphs for the observations on different types of developed nations
@@ -264,7 +311,7 @@ output$rich_graph <- renderPlot({
     scale_x_continuous(labels = scales::comma) +
     scale_y_continuous(labels = scales::comma) +
     geom_smooth(method = "lm") +
-    labs(title = rich_title, x = "Number of Refugees", y = "GDP Per Capita")
+    labs(title = rich_title, x = "Number of Refugees", y = "GDP Per Capita", caption = "Data sourced from the World Bank's Data Bank")
   
 })
 }
