@@ -132,10 +132,20 @@ data %>%
 ```{r}
 # refugee asylum location map 2018
 
-plot_geo(data = ref_2018, locationmode = 'country names') %>%
+plot_geo(data = ref, locationmode = 'country names') %>%
   add_trace(
-    z = ~value, locations = ~country, color = ~value, colors = "RdBu"
-  )
+    z = ~value, locations = ~country, color = ~value, colorbar = list(tick0 = 0,
+                                                                      tickmode = "log",
+                                                                      dtick =1000000),
+    colorscale = list(
+      list(0, 'rgb(255,255,204)'),
+      list(10/10000000, 'rgb(229,255,204)'),
+      list(100/10000000, 'rgb(204,255,229)'),
+      list(1000/10000000, 'rgb(102,255,255)'),
+      list(10000/10000000, 'rgb(107,178,255)'),
+      list(100000/10000000, 'rgb(0,128,255)'),
+      list(1000000/10000000, 'rgb(0,0,255)'),
+      list(10000000/10000000, 'rgb(153,0,76)')))
 
 ```
 
