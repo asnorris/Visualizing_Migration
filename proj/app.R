@@ -12,6 +12,7 @@ library(gganimate)
 library(plotly)
 library(rnaturalearth)
 library(shinythemes)
+library(vembedr)
 
 # Download data using World Bank R package. This data isasylum data showing the
 # number of refugees entering a country in a given year. I read this data in
@@ -94,14 +95,17 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                           tags$div("This project is a visualization of migration data sourced from the World Bank from 1990 to 2018 looking at data on
                                    where refugees are coming from, where refugees are going, and the relationship between refugee numbers and GDP indicators within different contexts. Given the current political context regarding refugees and whether or not they are welcomed into western countries, I decided to do this project to
                                    better understand the correlations between refugees and different GDP indicators."),
+                        h2("How to Navigate the Project"), 
+                          embed_youtube("6LKKa5oyNZA"),
                         h2("About Me"),
                           tags$div("My name is Alexandra Norris and I am currently a junior at Harvard College studying Government with a secondary in Economics.
                                    This Shiny App is my final project for GOV 1005 taught by David Kane. Check out my GitHub", a(href =  "https://github.com/asnorris",
                                                                                                                                  "here!")),
                         h2("Data Sources"),
                           tags$div("All of my data was sourced from the World Bank's", 
-                                   a(href = "https://databank.worldbank.org/home.aspx", "Data Bank."),
-                                   "The Data Bank contains data collected by the World Bank, IMF, and other UN organizations on different political, economic, and humanitarian indicators.
+                                   a(href = "https://databank.worldbank.org/home.aspx", "Data Bank,"),
+                                   "using the r package wbstats. The Data Bank contains data collected by the World Bank, IMF, and other UN organizations on different political, economic, and humanitarian indicators.
+                                   The wbstats r package allowed me to download data from the World Bank's website directly into r by using a dataset specific code.
                                    For this project, I used data on",
                                    a(href = "https://data.worldbank.org/indicator/sm.pop.refg", "Refugee Countries of Origin,"), 
                                    a(href = "https://data.worldbank.org/indicator/SM.POP.REFG.OR", "Refugee Countreis of Asylum,"), 
@@ -144,7 +148,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                       
                       sidebarLayout(
                         sidebarPanel(
-                          selectInput("gdp", "Refugee Affect On:", choices = c("GDP", "GDP Per Capita", "GDP Per Capita Growth Rate"), selected = "GDP")),
+                          selectInput("gdp", "Refugee Effect On:", choices = c("GDP", "GDP Per Capita", "GDP Per Capita Growth Rate"), selected = "GDP")),
                       mainPanel(
                         plotOutput("gdp_graph")
                       )),
@@ -200,6 +204,9 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
              # my video conclusion.
              
              tabPanel(("Conclusion"),
+              h1("Here's my paper analyzing the results of this project!"),
+              tags$iframe(style="height:400px; width:70%; scrolling=yes",
+                          src="pdf_writeup.pdf"),
               h1("Thank you for checking out my Shiny App!"))
              
   )
