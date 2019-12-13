@@ -1,0 +1,177 @@
+---
+title: "Project Reflection"
+date: "12/13/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+# load libraries
+
+knitr::opts_chunk$set(echo = FALSE)
+library(wbstats)
+library(countrycode)
+library(tidyverse)
+library(ggplot2)
+library(essurvey)
+library(sf)
+library(gganimate)
+library(plotly)
+library(rnaturalearth)
+library(plotly)
+library(broom)
+library(gt)
+
+```
+
+#How do refugees affect the economies of the nations they seek asylum in?
+
+For my Gov 1005: Data final project at Harvard College I chose to visualize refugee data.  I was interested in seeing where refugees have come from over the years, where they have gone, and what kinds of economic effects they had on the nations they journeyed to.  To conduct this project, I used data from the World Bank from 1990 to 2018 looking at refugees by country of origin, refugees by country of asylum, GDP, GDP per capita, and GDP per capita growth rate.  The question behind my research was: “What if any effect do refugees have on different GDP indicators in the countries they seek asylum in?”
+
+To answer this question, I ran multiple regressions looking at the relationship between the number of refugees seeking asylum in a country and different GDP indicators.  Here are the results of these regressions:
+
+```{r}
+
+# Download data on refugees by country or territory of asylum
+
+ref <- wb(indicator = "SM.POP.REFG")
+
+ref_2018 <- ref %>%
+  filter(date == 2018) %>%
+  select(iso3c, country, value)
+
+# Download data on refugees by country or territory of origin
+
+ref_origin <- wb(indicator = "SM.POP.REFG.OR") %>%
+  select(iso3c, country, value, date) %>%
+  slice(1335:6493)
+
+# here I download data from the World Bank and clean it so that I only have the variables that I need for my analysis
+
+gdp_percap_grow <- wb(indicator = "NY.GDP.PCAP.KD.ZG")
+
+gdp_percap <- wb(indicator = "NY.GDP.PCAP.CD")
+
+gdp <- wb(indicator = "NY.GDP.MKTP.CD")
+
+gdp_grow_ref <- merge(gdp_percap_grow, ref, by = c("iso3c", "date", "country", "iso2c")) %>%
+  mutate(gdp_percap_growth = value.x,
+            refugee_number = value.y) %>%
+  select(iso3c, iso2c, country, date, gdp_percap_growth, refugee_number)
+
+with_gdp <- merge(gdp_grow_ref, gdp, by = c("iso3c", "date", "country", "iso2c")) %>%
+  mutate(gdp = value) %>%
+  select(iso3c, iso2c, country, date, gdp, gdp_percap_growth, refugee_number)
+
+data <- merge(with_gdp, gdp_percap, by = c("iso3c", "date", "country", "iso2c")) %>%
+  mutate(gdp_percap = value) %>%
+  select(iso3c, iso2c, country, date, gdp, gdp_percap, gdp_percap_growth, refugee_number)
+```
+
+```{r}
+
+# Here I create the regression tables for the three different GDP indicators talked about in my analysis
+
+# GDP
+
+lm(gdp ~ refugee_number, data = data) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+
+# GDP per capita
+
+lm(gdp_percap ~ refugee_number, data = data) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+
+# GDP per capita growth
+
+lm(gdp_percap_growth ~ refugee_number, data = data) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita Growth") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+
+```
+
+Looking at the results of these regressions, we see that there is a statistically significant positive relationship between refugees and GDP, meaning that an increase in the number of refugees is associated with an increase in GDP.  This makes sense given that GDP is cumulative, meaning that the more people in a country, the higher the GDP.
+
+GDP per capita on the other hand is a better indicator of the economic health of a nation, showing on average how much income an individual has.  Looking at the second regression table, we see that there is a statistically insignificant negative relationship between the number of refugees entering a country and GDP per capita.  Because the 90% confidence interval passes through zero, we cannot be sure of any relationship between the two.
+
+The GDP per capita growth rate is how much economic growth individuals on average are experiencing in a nation.  Looking at the third regression table, there is a small but statistically significant negative relationship between the number of refugees entering a country and the GDP per capita growth rate.  This means that an increase in refugees entering a country is associated with a small decrease in the GDP per capita growth rate.  It would be interesting to look at this data with a time delay, looking at the number of refugees five or so years prior and seeing what relationship that number has with the different GDP indicators.  The negative relationship between refugees and GDP per capita growth rate may be due to the fact that it takes refugees a while to adjust to their new homes.  They may need to learn a new language, find a job, establish themselves in their communities, all activities that take time.  Too much should not be read into the above negative correlation, it may take more time for the benefits of refugees to manifest themselves.
+
+While observing the above data I became interested in seeing whether there were any heterogeneous effects in this data.  My initial western idea of refugees was that they flee poor countries for rich countries, but this is not true.  Observing the data, I found that most often, refugees flee from their home countries to neighboring countries where they will no longer suffer political persecution.  For example, countries like Bangladesh (receiving refugees from Myanmar), Turkey (receiving refugees from Syria), and Jordan (receiving refugees from Israel/Palestine) are not rich countries but have some of the highest numbers of refugees entering their countries.  Knowing this, I wondered whether the negative relationship between refugees and GDP per capita growth could be attributed to the fact that the countries receiving the largest numbers of refugees may not have enough resources or state capacity to adequately deal with the inflow, resulting in a negative relationship.
+
+To test for these suspected heterogeneous effects, I ran more regressions looking at the relationship between refugees and GDP per capita in high income countries, the European Union, and North America.  Here are the regressions:
+
+```{r}
+# Analysis for rich countries
+
+# High Income Countries
+
+hi <- data %>%
+  filter(country == "High income")
+
+lm(gdp_percap ~ refugee_number, data = hi) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita in High Income Countries") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+
+# European Union 
+eu <- data %>%
+  filter(country == "Euro area")
+
+lm(gdp_percap ~ refugee_number, data = eu) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita in European Union") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+
+# North America
+
+na <- data %>%
+  filter(country == "North America")
+
+lm(gdp_percap ~ refugee_number, data = na) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita in North America") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+  
+```
+
+Reviewing the tables, we see that there are small but statistically significant negative relationships between refugees and GDP per capita.  In searching for heterogeneous effects, I had expected that rich countries would experience a positive relationship between refugees and GDP per capita because these countries would have the resources to adequately resettle the refugees.  That being said, due again to the fact that it takes time for refugees to adjust to their new homes and become integrated in their communities, these negative effects may not last into the future.  It would be interesting to look at data that includes a time lag to see the longer-term effects of refugees on the economies of the countries they join.  It would also be interesting to look at community-level data rather than nation-wide data.
+
+###Datsets
+
+Refugees by Country of Asylum: https://data.worldbank.org/indicator/sm.pop.refg
+
+
+Refugees by Country of Origin: https://data.worldbank.org/indicator/SM.POP.REFG.OR
+
+
+GDP: https://data.worldbank.org/indicator/NY.GDP.MKTP.CD
+
+
+GDP Per Capita: https://data.worldbank.org/indicator/NY.GDP.PCAP.CD
+
+
+Gdp Per Capita Growth Rate: https://data.worldbank.org/indicator/NY.GDP.PCAP.KD.ZG
+

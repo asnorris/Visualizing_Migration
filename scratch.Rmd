@@ -1,13 +1,13 @@
 ---
-title: "prep"
+title: "Prep for Shiny APP"
 author: "Alexandra Norris"
-date: "11/12/2019"
+date: "12/13/2019"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(wbstats)
 library(countrycode)
 library(tidyverse)
@@ -128,6 +128,50 @@ data %>%
   geom_smooth(method = "lm", se = FALSE, color = "green")
 
 ```
+
+```{r}
+# Analysis for rich countries
+
+# High Income Countries
+
+hi <- data %>%
+  filter(country == "High income")
+
+lm(gdp_percap ~ refugee_number, data = hi) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita in High Income Countries") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+
+# European Union 
+eu <- data %>%
+  filter(country == "Euro area")
+
+lm(gdp_percap ~ refugee_number, data = eu) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita in European Union") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+
+# North America
+
+na <- data %>%
+  filter(country == "North America")
+
+lm(gdp_percap ~ refugee_number, data = na) %>%
+  tidy(conf.int = TRUE, conf.level = 0.90) %>%
+  mutate(name = c("Intercept", "Number of Refugees")) %>%
+  select(name, estimate, conf.low, conf.high) %>%
+  gt() %>%
+  tab_header(title = "Refugee Counts and GDP Per Capita in North America") %>%
+  cols_label(name = "", estimate = "Estimate", conf.low = "5th Percentile", conf.high = "95th Percentile")
+  
+```
+
 
 ```{r}
 # refugee asylum location map 2018
